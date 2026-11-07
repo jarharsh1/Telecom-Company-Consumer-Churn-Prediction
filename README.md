@@ -113,3 +113,23 @@ curl -X POST http://127.0.0.1:8000/predict \
 - `TotalCharges` arrives with a few blank strings; ingestion/validation tolerate
   them and transformation coerces + imputes them.
 - Generated artifacts (`artifacts/`, `logs/`, `mlruns/`) are gitignored.
+
+## Use cases
+
+This is a **reusable MLOps template for any customer-level binary-classification
+problem** — telecom churn is the worked example. The two-file join, schema-based
+validation, GradientBoosting training, DVC/MLflow tracking, FastAPI serving and
+CI carry over unchanged; you swap the data and the `schema.yaml` contract.
+
+| Domain | Swap in | Predict |
+|--------|---------|---------|
+| **Telecom churn** *(shipped example)* | subscriber accounts | will the customer churn |
+| **SaaS / subscriptions** | usage + billing features | cancellation risk |
+| **Banking** | account activity | attrition / dormancy |
+| **Healthcare** | patient engagement features | appointment no-show, drop-off |
+| **E-commerce** | shopper behavior | repeat-purchase likelihood |
+| **Insurance** | policyholder features | non-renewal risk |
+
+To retarget: replace the raw data, update `schema.yaml` (features, target,
+numeric vs. categorical), adjust the decision threshold in `params.yaml` for your
+class balance, and run `dvc repro`.
