@@ -63,6 +63,17 @@ def test_blank_totalcharges_is_tolerated(tmp_path):
     assert DataValidation(_config(tmp_path, f)).validate() is True
 
 
+def test_empty_totalcharges_field_is_tolerated(tmp_path):
+    # One empty CSV field (reads back as NaN) alongside a valid value is an
+    # allowed missing value, not a "non-numeric" error. Two rows so the column
+    # is not entirely null.
+    df = pd.concat([_valid_frame(), _valid_frame()], ignore_index=True)
+    df.loc[0, "TotalCharges"] = None  # empty field -> NaN on read-back
+    f = tmp_path / "empty.csv"
+    df.to_csv(f, index=False)
+    assert DataValidation(_config(tmp_path, f)).validate() is True
+
+
 def test_non_numeric_totalcharges_fails(tmp_path):
     df = _valid_frame()
     df["TotalCharges"] = ["not-a-number"]

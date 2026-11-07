@@ -43,8 +43,13 @@ class DataValidation:
             if col not in df.columns:
                 continue
             coerced = pd.to_numeric(df[col], errors="coerce")
-            non_blank = df[col].astype(str).str.strip() != ""
-            unparsable = coerced.isna() & non_blank
+            # A value is "present" only if it is neither already-missing (NaN
+            # from an empty CSV field) nor a whitespace-only string. Both are
+            # allowed missing values handled by the median imputer downstream.
+            already_missing = df[col].isna()
+            blank_string = df[col].astype(str).str.strip() == ""
+            present = ~(already_missing | blank_string)
+            unparsable = coerced.isna() & present
             if unparsable.any():
                 errors.append(
                     f"Numeric column '{col}' has {int(unparsable.sum())} non-numeric value(s)"
