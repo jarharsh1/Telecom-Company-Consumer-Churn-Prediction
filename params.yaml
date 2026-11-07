@@ -1,0 +1,17 @@
+# Experiment parameters. Tweak and re-run `dvc repro` to track experiments.
+
+data_transformation:
+  test_size: 0.2
+  random_state: 42
+
+model_trainer:
+  # Gradient boosting handles the mixed categorical/numeric churn features well.
+  n_estimators: 300
+  learning_rate: 0.05
+  max_depth: 3
+  subsample: 0.9
+  random_state: 42
+
+model_evaluation:
+  # Churn is imbalanced (~27% positive); favour recall by lowering the threshold.
+  decision_threshold: 0.4

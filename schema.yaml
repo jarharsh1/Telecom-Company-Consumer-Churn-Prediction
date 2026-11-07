@@ -1,0 +1,53 @@
+# Data contract for the combined Telco churn dataset (after joining the two
+# raw halves and dropping customerID). Validation checks incoming data here.
+
+target_column: Churn
+id_column: customerID
+
+# Columns expected in the JOINED frame (customerID already dropped).
+# "numeric" vs "categorical" family is what validation enforces; TotalCharges
+# arrives as blank-containing strings and is coerced to numeric in transformation.
+columns:
+  gender: object
+  SeniorCitizen: int64
+  Partner: object
+  Dependents: object
+  tenure: int64
+  PhoneService: object
+  MultipleLines: object
+  InternetService: object
+  OnlineSecurity: object
+  OnlineBackup: object
+  DeviceProtection: object
+  TechSupport: object
+  StreamingTV: object
+  StreamingMovies: object
+  Contract: object
+  PaperlessBilling: object
+  PaymentMethod: object
+  MonthlyCharges: float64
+  TotalCharges: object
+  Churn: object
+
+numeric_columns:
+  - tenure
+  - MonthlyCharges
+  - TotalCharges
+
+categorical_columns:
+  - gender
+  - SeniorCitizen
+  - Partner
+  - Dependents
+  - PhoneService
+  - MultipleLines
+  - InternetService
+  - OnlineSecurity
+  - OnlineBackup
+  - DeviceProtection
+  - TechSupport
+  - StreamingTV
+  - StreamingMovies
+  - Contract
+  - PaperlessBilling
+  - PaymentMethod
