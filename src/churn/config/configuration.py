@@ -37,6 +37,7 @@ class ConfigurationManager:
             source_file_2=Path(c["source_file_2"]),
             id_column=c["id_column"],
             local_data_file=Path(c["local_data_file"]),
+            schema=self.schema,
         )
 
     def get_data_validation_config(self) -> DataValidationConfig:

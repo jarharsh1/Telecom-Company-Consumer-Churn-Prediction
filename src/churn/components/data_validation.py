@@ -3,7 +3,8 @@
 Checks the ingested (joined) frame against schema.yaml: the column set matches,
 declared numeric columns are numeric-coercible (TotalCharges arrives as blank-
 containing strings, which is tolerated as long as the non-blank values parse),
-the target is present, complete, and binary. Writes a status.json to gate on.
+declared-categorical columns did not silently arrive as a numeric dtype, and the
+target is present, complete, and binary. Writes a status.json to gate on.
 """
 
 import pandas as pd
@@ -53,6 +54,24 @@ class DataValidation:
             if unparsable.any():
                 errors.append(
                     f"Numeric column '{col}' has {int(unparsable.sum())} non-numeric value(s)"
+                )
+
+        # 2b. Declared-categorical columns must NOT arrive as a numeric dtype
+        #     (mirrors the dtype-family check in the loan sibling). This catches
+        #     a categorical column that silently came in numeric, which would
+        #     change how the one-hot encoder treats it. Columns in
+        #     ``numeric_columns`` are skipped: those are validated above, and
+        #     TotalCharges is deliberately declared object-but-coercible.
+        numeric_set = set(numeric_cols)
+        for col, expected_dtype in schema["columns"].items():
+            if col not in df.columns or col in numeric_set or col == target:
+                continue
+            exp_numeric = str(expected_dtype).startswith(("int", "float"))
+            act_numeric = pd.api.types.is_numeric_dtype(df[col])
+            if act_numeric and not exp_numeric:
+                errors.append(
+                    f"Categorical column '{col}' arrived numeric ({df[col].dtype}); "
+                    f"schema declares {expected_dtype}"
                 )
 
         # 3. No completely empty columns.

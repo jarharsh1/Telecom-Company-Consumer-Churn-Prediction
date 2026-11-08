@@ -11,6 +11,7 @@ class DataIngestionConfig:
     source_file_2: Path
     id_column: str
     local_data_file: Path
+    schema: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

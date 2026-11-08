@@ -9,6 +9,10 @@ id_column: customerID
 # arrives as blank-containing strings and is coerced to numeric in transformation.
 columns:
   gender: object
+  # SeniorCitizen is a 0/1 flag: declared int64 but listed under
+  # categorical_columns and one-hot encoded (not scaled). It is left numeric on
+  # purpose; serving sends it as an int, so train/serve stay consistent. Do not
+  # "fix" the dtype without checking the one-hot categories still line up.
   SeniorCitizen: int64
   Partner: object
   Dependents: object

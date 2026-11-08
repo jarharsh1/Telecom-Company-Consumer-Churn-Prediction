@@ -95,3 +95,23 @@ def test_bad_target_labels_fail(tmp_path):
     f = tmp_path / "bad_target.csv"
     df.to_csv(f, index=False)
     assert DataValidation(_config(tmp_path, f)).validate() is False
+
+
+def test_categorical_column_arriving_numeric_fails(tmp_path):
+    # A declared-object categorical column (Partner) that silently arrives as a
+    # numeric dtype must be flagged by the dtype-family check.
+    df = pd.concat([_valid_frame(), _valid_frame()], ignore_index=True)
+    df["Partner"] = [0, 1]  # numeric instead of "Yes"/"No"
+    f = tmp_path / "num_categorical.csv"
+    df.to_csv(f, index=False)
+    assert DataValidation(_config(tmp_path, f)).validate() is False
+
+
+def test_seniorcitizen_int_flag_is_allowed(tmp_path):
+    # SeniorCitizen is declared int64 and intentionally numeric; the dtype-family
+    # check must NOT flag it (regression guard for the categorical check above).
+    df = pd.concat([_valid_frame(), _valid_frame()], ignore_index=True)
+    df["SeniorCitizen"] = [0, 1]
+    f = tmp_path / "senior.csv"
+    df.to_csv(f, index=False)
+    assert DataValidation(_config(tmp_path, f)).validate() is True

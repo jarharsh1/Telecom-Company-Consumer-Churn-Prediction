@@ -34,6 +34,11 @@ class ModelTrainer:
             random_state=self.config.random_state,
         )
 
+        # NOTE: this .fit() refits the preprocessor on the training rows (the
+        # same train-only data it was already fitted on in transformation), so
+        # the served preprocessor has no test leakage. The standalone
+        # preprocessor.joblib from the transformation stage is therefore not used
+        # at serving time; it is kept only for lineage / inspection.
         serving_pipeline = Pipeline(
             steps=[("preprocessor", preprocessor), ("model", model)]
         )

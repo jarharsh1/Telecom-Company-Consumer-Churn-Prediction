@@ -16,6 +16,36 @@ class DataIngestion:
     def __init__(self, config: DataIngestionConfig):
         self.config = config
 
+    def _check_join(self, combined: pd.DataFrame) -> None:
+        """Guard the positional column-join.
+
+        Because the two halves are concatenated by row position with no shared
+        key, a misaligned or overlapping export would otherwise pass silently.
+        We reject duplicate column names (a sign the halves overlapped) and, when
+        a schema is available, require every expected joined column to be present
+        (so a dropped target/key column fails loudly here, not three stages later).
+        """
+        dupes = sorted({c for c in combined.columns if list(combined.columns).count(c) > 1})
+        if dupes:
+            raise ValueError(
+                f"Duplicate columns after joining the two halves: {dupes}. "
+                "The halves appear to overlap or be misaligned."
+            )
+
+        schema = self.config.schema or {}
+        schema_cols = schema.get("columns")
+        if schema_cols:
+            # schema['columns'] describes the id-dropped frame; the raw join may
+            # still carry the id column, so allow it in the expected set.
+            expected = set(schema_cols) | {self.config.id_column}
+            actual = set(combined.columns)
+            missing = expected - actual
+            if missing:
+                raise ValueError(
+                    f"Joined frame is missing expected columns: {sorted(missing)}. "
+                    "The source halves do not match the schema contract."
+                )
+
     def ingest(self) -> str:
         f1, f2 = self.config.source_file_1, self.config.source_file_2
         for f in (f1, f2):
@@ -32,6 +62,11 @@ class DataIngestion:
         combined = pd.concat(
             [left.reset_index(drop=True), right.reset_index(drop=True)], axis=1
         )
+
+        # The halves are joined purely by row position (there is no shared key:
+        # file 2 has no customerID), so harden the "same order / disjoint
+        # columns" contract before anything downstream trusts the join.
+        self._check_join(combined)
 
         # Drop the identifier if present; it carries no predictive signal.
         if self.config.id_column in combined.columns:
