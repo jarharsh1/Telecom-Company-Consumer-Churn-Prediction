@@ -59,6 +59,7 @@ def train() -> dict:
     try:
         from churn.pipeline.prediction import (
             _default_threshold,
+            _feature_columns,
             _load_model,
             _numeric_columns,
         )
@@ -69,6 +70,7 @@ def train() -> dict:
         _load_model.cache_clear()
         _default_threshold.cache_clear()
         _numeric_columns.cache_clear()
+        _feature_columns.cache_clear()
         _pipeline = None
         return {"status": "retrained"}
     except Exception as exc:
