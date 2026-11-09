@@ -6,6 +6,8 @@ order. We join them column-wise, drop the identifier, and write a single
 combined CSV for the downstream stages.
 """
 
+from collections import Counter
+
 import pandas as pd
 
 from churn.entity.config_entity import DataIngestionConfig
@@ -25,7 +27,7 @@ class DataIngestion:
         a schema is available, require every expected joined column to be present
         (so a dropped target/key column fails loudly here, not three stages later).
         """
-        dupes = sorted({c for c in combined.columns if list(combined.columns).count(c) > 1})
+        dupes = sorted(c for c, n in Counter(combined.columns).items() if n > 1)
         if dupes:
             raise ValueError(
                 f"Duplicate columns after joining the two halves: {dupes}. "
